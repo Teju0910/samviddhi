@@ -2,6 +2,14 @@ const axios = require("axios");
 const express = require("express");
 
 const app = express();
+const cors=require("cors");
+const corsOptions ={
+   origin:'*', 
+   credentials:true,            //access-control-allow-credentials:true
+   optionSuccessStatus:200,
+}
+
+app.use(cors(corsOptions)) 
 
 // Define the currency exchange route
 app.get("/currency-exchange", async (req, res) => {
@@ -27,6 +35,11 @@ app.get("/currency-exchange", async (req, res) => {
     try {
       const response = await axios.get(source.url);
       let exchangeRate;
+
+      console.log(response.data.match(
+        /class="ccOutputTrail">(.+?)<\/span>/
+      )[1],"-response")
+
       switch (source.name) {
         case "x-rates":
           exchangeRate = response.data.match(
@@ -58,7 +71,7 @@ app.get("/currency-exchange", async (req, res) => {
       console.error(err);
     }
   }
-  res.json(exchangeRates);
+  return exchangeRates;
 });
 
 app.get("/convert", async (req, res) => {

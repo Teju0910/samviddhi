@@ -10,14 +10,21 @@ export const CurrencyConverter = () => {
   const [amount, setAmount] = useState("");
   const [exchangeRates, setExchangeRates] = useState([]);
 
-  useEffect(() => {
-    fetch("/currency-exchange?from=INR&to=USD")
+  console.log(exchangeRates, "exchangeRates");
+  // useEffect(() => {
+  //   // https://prussian-blue-dugong-boot.cyclic.app/currency-exchange?from=GBP&to=INR
+  //   // fetch("/currency-exchange?from=INR&to=USD")
+  // }, []);
+
+  const handelConvert = () => {
+    fetch(
+      `https://prussian-blue-dugong-boot.cyclic.app/currency-exchange?from=${fromCurrency}&to=${toCurrency}`
+    )
       .then((response) => response.json())
       .then((data) => {
         setExchangeRates(data);
       });
-  }, []);
-
+  };
   const handleFromCurrencyChange = (event) => {
     setFromCurrency(event.target.value);
   };
@@ -76,10 +83,15 @@ export const CurrencyConverter = () => {
               onChange={handleAmountChange}
             />
           </Box>
-          <Button variant="contained"> Convert</Button>
+          <Button variant="contained" onClick={handelConvert}>
+            {" "}
+            Convert
+          </Button>
         </Box>
       </Box>
-      <ExchangeRateData exchangeRates={exchangeRates} />
+      {exchangeRates && exchangeRates.length > 0 && (
+        <ExchangeRateData exchangeRates={exchangeRates} />
+      )}
       <ConvertedValues
         fromCurrency={fromCurrency}
         toCurrency={toCurrency}
