@@ -2,16 +2,9 @@ const axios = require("axios");
 const express = require("express");
 
 const app = express();
-const cors=require("cors");
-const corsOptions ={
-   origin:'*', 
-   credentials:true,            //access-control-allow-credentials:true
-   optionSuccessStatus:200,
-}
+const cors = require("cors");
+app.use(cors());
 
-app.use(cors(corsOptions)) 
-
-// Define the currency exchange route
 app.get("/currency-exchange", async (req, res) => {
   const { from, to } = req.query;
   const sources = [
@@ -35,11 +28,6 @@ app.get("/currency-exchange", async (req, res) => {
     try {
       const response = await axios.get(source.url);
       let exchangeRate;
-
-      console.log(response.data.match(
-        /class="ccOutputTrail">(.+?)<\/span>/
-      )[1],"-response")
-
       switch (source.name) {
         case "x-rates":
           exchangeRate = response.data.match(
@@ -71,7 +59,8 @@ app.get("/currency-exchange", async (req, res) => {
       console.error(err);
     }
   }
-  return exchangeRates;
+
+  res.json(exchangeRates);
 });
 
 app.get("/convert", async (req, res) => {
@@ -79,7 +68,6 @@ app.get("/convert", async (req, res) => {
 
   // Fetch exchange rates for the given currencies
   const exchangeRates = await fetchExchangeRates(from, to);
- 
   // Calculate maximum and minimum converted values
   const maxRate = Math.max(...exchangeRates.map((rate) => rate.exchange_rate));
   const minRate = Math.min(...exchangeRates.map((rate) => rate.exchange_rate));
@@ -106,14 +94,11 @@ async function fetchExchangeRates(from, to) {
     },
     { name: "google", url: `https://www.google.com/search?q=${from}+to+${to}` },
   ];
-
   const exchangeRates = [];
   for (const source of sources) {
     try {
       const response = await axios.get(source.url);
-      console.log(response.data.match(
-        /class="ccOutputTrail">(.+?)<\/span>/
-      )[1],"-response")
+    
       let exchangeRate;
       switch (source.name) {
         case "x-rates":
@@ -137,30 +122,20 @@ async function fetchExchangeRates(from, to) {
           )[1];
           break;
       }
-      console.log(exchangeRate, "exchangeRates");
       const pattern = /[0-9]+\.[0-9]+/;
       const match = exchangeRate.match(pattern);
       const result = match ? match[0] : exchangeRate;
       exchangeRates.push({ exchange_rate: result, source: source.url });
-
-      
-     
     } catch (err) {
       console.error(err);
     }
-    console.log(exchangeRates, "exchangeRa--------tes");
-    return exchangeRates;
   }
+  return exchangeRates;
 }
 
-function parseExchangeRate(html, source) {
-  // Implement parsing logic to extract exchange rate from HTML
-  const exchangeRate = 80.05; // Replace with actual exchange rate
 
-  return { exchange_rate: exchangeRate, source: source };
-}
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
