@@ -17,8 +17,8 @@ export const CurrencyConverter = () => {
   const handelConvert = async () => {
     setLoading(true);
     fetch(
-      `http://localhost:4000/currency-exchange?from=${fromCurrency}&to=${toCurrency}`
-      // `https://pleasant-tick-garb.cyclic.app/currency-exchange?from=${fromCurrency}&to=${toCurrency}`
+      // `http://localhost:4000/currency-exchange?from=${fromCurrency}&to=${toCurrency}`
+      `https://pleasant-tick-garb.cyclic.app/currency-exchange?from=${fromCurrency}&to=${toCurrency}`
     )
       .then((response) => response.json())
       .then((data) => {
@@ -27,8 +27,8 @@ export const CurrencyConverter = () => {
       })
       .then(async () => {
         await fetch(
-          `http://localhost:4000/convert?from=${fromCurrency}&to=${toCurrency}&amount=${amount}`
-          // `https://pleasant-tick-garb.cyclic.app/convert?from=${fromCurrency}&to=${toCurrency}&amount=${amount}`
+          // `http://localhost:4000/convert?from=${fromCurrency}&to=${toCurrency}&amount=${amount}`
+          `https://pleasant-tick-garb.cyclic.app/convert?from=${fromCurrency}&to=${toCurrency}&amount=${amount}`
         )
           .then((response) => response.json())
           .then((data) => {
