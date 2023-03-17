@@ -1,15 +1,19 @@
+import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 
-export const ExchangeRateData = ({exchangeRates}) => {
-
+export const ExchangeRateData = ({ exchangeRates }) => {
   return (
     <>
-      {exchangeRates.map((exchangeRate) => (
-        <div key={exchangeRate.source}>
-          <p>Exchange rate: {exchangeRate.exchange_rate}</p>
-          <p>Source: {exchangeRate.source}</p>
-        </div>
-      ))}
+      <Box m={10} p={3} alignItems="center">
+        {exchangeRates?.map((exchangeRate) => (
+          <Box key={exchangeRate.source} display="flex">
+            {/* <Typography variant="h7" m={2}>
+              Exchange rate: {exchangeRate.exchange_rate}
+            </Typography>
+            <Typography variant="h7" m={2}>Source: {exchangeRate.source}</Typography> */}
+          </Box>
+        ))}
+      </Box>
     </>
   );
 };

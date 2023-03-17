@@ -7,68 +7,14 @@ app.use(cors());
 
 app.get("/currency-exchange", async (req, res) => {
   const { from, to } = req.query;
-  const sources = [
-    {
-      name: "x-rates",
-      url: `https://www.x-rates.com/calculator/?from=${from}&to=${to}&amount=1`,
-    },
-    {
-      name: "xe",
-      url: `https://www.xe.com/currencyconverter/convert/?Amount=1&From=${from}&To=${to}`,
-    },
-    {
-      name: "oanda",
-      url: `https://www.oanda.com/currency/converter/#converter|${from}|${to}|1`,
-    },
-    { name: "google", url: `https://www.google.com/search?q=${from}+to+${to}` },
-  ];
-
-  const exchangeRates = [];
-  for (const source of sources) {
-    try {
-      const response = await axios.get(source.url);
-      let exchangeRate;
-      switch (source.name) {
-        case "x-rates":
-          exchangeRate = response.data.match(
-            /class="ccOutputTrail">(.+?)<\/span>/
-          )[1];
-          break;
-        case "xe":
-          exchangeRate = response.data.match(
-            /class="uccResultAmount">(.+?)<\/span>/
-          )[1];
-          break;
-        case "oanda":
-          exchangeRate = response.data.match(
-            /class="currency_converter_result">\s*(.+?)\s*</
-          )[1];
-          break;
-        case "google":
-          exchangeRate = response.data.match(
-            /<div class="BNeawe iBp4i AP7Wnd">(.+?)<\/div>/
-          )[1];
-          break;
-      }
-
-      const pattern = /[0-9]+\.[0-9]+/;
-      const match = exchangeRate.match(pattern);
-      const result = match ? match[0] : exchangeRate;
-      exchangeRates.push({ exchange_rate: result, source: source.url });
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
+  const exchangeRates = await fetchExchangeRates(from, to);
   res.json(exchangeRates);
 });
 
 app.get("/convert", async (req, res) => {
   const { from, to, amount } = req.query;
 
-  // Fetch exchange rates for the given currencies
   const exchangeRates = await fetchExchangeRates(from, to);
-  // Calculate maximum and minimum converted values
   const maxRate = Math.max(...exchangeRates.map((rate) => rate.exchange_rate));
   const minRate = Math.min(...exchangeRates.map((rate) => rate.exchange_rate));
   const maxValue = maxRate * amount;
@@ -88,37 +34,28 @@ async function fetchExchangeRates(from, to) {
       name: "xe",
       url: `https://www.xe.com/currencyconverter/convert/?Amount=1&From=${from}&To=${to}`,
     },
-    {
-      name: "oanda",
-      url: `https://www.oanda.com/currency/converter/#converter|${from}|${to}|1`,
-    },
     { name: "google", url: `https://www.google.com/search?q=${from}+to+${to}` },
   ];
   const exchangeRates = [];
   for (const source of sources) {
     try {
       const response = await axios.get(source.url);
-    
+
       let exchangeRate;
       switch (source.name) {
         case "x-rates":
           exchangeRate = response.data.match(
-            /class="ccOutputTrail">(.+?)<\/span>/
+            /class="ccOutputRslt">(.+?)<\/span>/
           )[1];
           break;
         case "xe":
           exchangeRate = response.data.match(
-            /class="uccResultAmount">(.+?)<\/span>/
-          )[1];
-          break;
-        case "oanda":
-          exchangeRate = response.data.match(
-            /class="currency_converter_result">\s*(.+?)\s*</
+            /class="result__BigRate-sc-1bsijpp-1 iGrAod">(.+?)<\/span>/
           )[1];
           break;
         case "google":
           exchangeRate = response.data.match(
-            /<div class="BNeawe iBp4i AP7Wnd">(.+?)<\/div>/
+            /<div class="DFlfde SwHCTb">(.+?)<\/div>/
           )[1];
           break;
       }
@@ -132,8 +69,6 @@ async function fetchExchangeRates(from, to) {
   }
   return exchangeRates;
 }
-
-
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

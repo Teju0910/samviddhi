@@ -5,26 +5,41 @@ import { ConvertedValues } from "./convertedValues";
 import { ExchangeRateData } from "./currancyExchangeRates";
 
 export const CurrencyConverter = () => {
+  const [loading, setLoading] = useState(false);
   const [fromCurrency, setFromCurrency] = useState("INR");
   const [toCurrency, setToCurrency] = useState("USD");
   const [amount, setAmount] = useState("");
   const [exchangeRates, setExchangeRates] = useState([]);
+  const [getCurrency, setGetCurrency] = useState(false);
+  const [maxValue, setMaxValue] = useState(null);
+  const [minValue, setMinValue] = useState(null);
 
-  console.log(exchangeRates, "exchangeRates");
-  // useEffect(() => {
-  //   // https://prussian-blue-dugong-boot.cyclic.app/currency-exchange?from=GBP&to=INR
-  //   // fetch("/currency-exchange?from=INR&to=USD")
-  // }, []);
-
-  const handelConvert = () => {
+  const handelConvert = async () => {
+    setLoading(true);
     fetch(
-      `https://prussian-blue-dugong-boot.cyclic.app/currency-exchange?from=${fromCurrency}&to=${toCurrency}`
+      `http://localhost:4000/currency-exchange?from=${fromCurrency}&to=${toCurrency}`
+      // `https://pleasant-tick-garb.cyclic.app/currency-exchange?from=${fromCurrency}&to=${toCurrency}`
     )
       .then((response) => response.json())
       .then((data) => {
         setExchangeRates(data);
+        setGetCurrency(true);
+      })
+      .then(async () => {
+        await fetch(
+          `http://localhost:4000/convert?from=${fromCurrency}&to=${toCurrency}&amount=${amount}`
+          // `https://pleasant-tick-garb.cyclic.app/convert?from=${fromCurrency}&to=${toCurrency}&amount=${amount}`
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+            setMaxValue(data.max_value);
+            setMinValue(data.min_value);
+            setLoading(false);
+          });
       });
   };
+
   const handleFromCurrencyChange = (event) => {
     setFromCurrency(event.target.value);
   };
@@ -39,43 +54,54 @@ export const CurrencyConverter = () => {
 
   return (
     <Box>
-      <Box border="1px solid teal" m={10} p={3} alignItems="center">
-        <Typography variant="h4">Currency Converter</Typography>
-        <Box ml={50} width="50%">
-          <Box p={4}>
-            <label variant="h5">From : </label>
-            <Select
-              mr={6}
-              id="from-currency"
-              value={fromCurrency}
-              onChange={handleFromCurrencyChange}
-            >
-              <MenuItem value="INR">INR</MenuItem>
-              <MenuItem value="KRW">KRW</MenuItem>
-              <MenuItem value="USD">USD</MenuItem>
-              <MenuItem value="EUR">EUR</MenuItem>
-              <MenuItem value="CNY">CNY</MenuItem>
-            </Select>
+      <Box
+        border="3px solid red"
+        m={10}
+        borderRadius={10}
+        p={3}
+        bgcolor={"#fafafa"}
+        alignItems="center"
+        display="flex"
+      >
+        <Box ml={"20%"} width="50%">
+          <Typography variant="h4">Currency Converter</Typography>
+          <Box display="flex">
+            <Box m={4}>
+              <label htmlFor="to-currency">From : </label>
+              <Select
+                mr={6}
+                id="from-currency"
+                value={fromCurrency}
+                onChange={handleFromCurrencyChange}
+              >
+                <MenuItem value="INR">INR</MenuItem>
+                <MenuItem value="KRW">KRW</MenuItem>
+                <MenuItem value="USD">USD</MenuItem>
+                <MenuItem value="EUR">EUR</MenuItem>
+                <MenuItem value="CNY">CNY</MenuItem>
+              </Select>
+            </Box>
+            <Box m={4}>
+              <label htmlFor="to-currency">To : </label>
+              <Select
+                labelId="demo-simple-select-label"
+                id="to-currency"
+                value={toCurrency}
+                mr={6}
+                onChange={handleToCurrencyChange}
+              >
+                <MenuItem value="INR">INR</MenuItem>
+                <MenuItem value="KRW">KRW</MenuItem>
+                <MenuItem value="USD">USD</MenuItem>
+                <MenuItem value="EUR">EUR</MenuItem>
+                <MenuItem value="CNY">CNY</MenuItem>
+              </Select>
+            </Box>
           </Box>
-          <Box>
-            <label htmlFor="to-currency">To : </label>
-            <Select
-              labelId="demo-simple-select-label"
-              id="to-currency"
-              value={toCurrency}
-              mr={6}
-              onChange={handleToCurrencyChange}
-            >
-              <MenuItem value="INR">INR</MenuItem>
-              <MenuItem value="KRW">KRW</MenuItem>
-              <MenuItem value="USD">USD</MenuItem>
-              <MenuItem value="EUR">EUR</MenuItem>
-              <MenuItem value="CNY">CNY</MenuItem>
-            </Select>
-          </Box>
-          <Box p={6}>
+          <Box m={10}>
             <label variant="h5">Amount : </label>
             <Input
+              // mr={6}
               type="number"
               id="amount"
               variant="filled"
@@ -88,15 +114,13 @@ export const CurrencyConverter = () => {
             Convert
           </Button>
         </Box>
+        {!loading ? (
+          <ConvertedValues maxValue={maxValue} minValue={minValue} />
+        ) : (
+          <Typography variant="h4">Loading...</Typography>
+        )}
       </Box>
-      {exchangeRates && exchangeRates.length > 0 && (
-        <ExchangeRateData exchangeRates={exchangeRates} />
-      )}
-      <ConvertedValues
-        fromCurrency={fromCurrency}
-        toCurrency={toCurrency}
-        amount={amount}
-      />
+      <ExchangeRateData exchangeRates={exchangeRates} />
     </Box>
   );
 };
